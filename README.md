@@ -3,7 +3,7 @@
 ### Deploy-Deception is a PowerShell module to deploy active directory decoy objects.
 By [nikhil_mitt](https://twitter.com/nikhil_mitt)
 
-#### Usage
+### Usage
 
 Import the module in the current PowerShell session (PowerShell v3 onwards).
 
@@ -21,7 +21,7 @@ For example, to see the help about Deploy-UserDeception, use
 
 PS C:\\> Get-Help Deploy-UserDeception -Full
 
-#### Functions
+### Functions
 Deploy-Deception currently has following functions:
 
 All the functions must be run on a DC with domain admin privileges. There are multiple attributes and flags
@@ -31,13 +31,13 @@ When a right, say, ReadProperty is used to access the decoy, a Security Event 46
 Note that Windows Settings|Security Settings|Advanced Audit Policy Configuration|DS Access|Audit Directory Service Access
 Group Policy needs to be configured to enable 4662 logging. 
 
-#### Deploy-UserDeception
+### Deploy-UserDeception
 This function sets up auditing when a specified Right is used by a specifed principal against the decoy user object.
 
 Create-DecoyUser -UserFirstName user -UserLastName manager-control -Password Pass@123 | Deploy-UserDeception -UserFlag AllowReversiblePasswordEncryption -Right ReadControl -Verbose 
 
 
-#### Deploy-UserDeception
+### Deploy-UserDeception
 This function sets up auditing when a specified Right is used by a specifed principal against the decoy user object.
 
 EXAMPLE
@@ -61,7 +61,7 @@ A 4662 is logged whenever DACL of the user is read.
 
 This property is not read by enumeration tools unless specifically DACL or all properties for the decoy user are force read.
 
-#### Deploy-SlaveDeception
+### Deploy-SlaveDeception
 This function sets up auditing when a specified Right is used over the slave user by a master user who has FUllControl/GenericALl over the slave user.
 
 EXAMPLE
@@ -98,7 +98,7 @@ This is useful when targeting lateral movement and it is assumed that an adversa
 For example, masteruser could be a honeyuser whose credentials are left on multipe machines or masteruser can have its
 usable password in Description.
 
-#### Deploy-PrivilegedUserDeception
+### Deploy-PrivilegedUserDeception
 This function deploys a decoy user which has high privileges like membership of the Domain Admins group. 
 EXAMPLE
 
@@ -143,7 +143,7 @@ If there is any attempt to use the user credentials (password or hashes) a 4768 
 
 Any enumeration which reads DACL or all properties for the user will result in a 4662 logging. 
 
-#### Deploy-ComputerDeception
+### Deploy-ComputerDeception
 This function sets up auditing when a specified Right is used by a specifed principal against the decoy computer object.
 
 PS C:\\> Create-DecoyComputer -ComputerName revert-web -Verbose | Deploy-ComputerDeception -PropertyFlag TrustedForDelegation -GUID d07da11f-8a3d-42b6-b0aa-76c962be719a  -Verbose
@@ -168,7 +168,7 @@ A 4662 is logged whenever DACL or all the properties of the computer are read.
 
 Using a real machine for the decoy is always recommended as it is harder to identify as a decoy. 
 
-#### Deploy-GroupDeception
+### Deploy-GroupDeception
 This function sets up auditing when a specified Right is used by a specifed principal against the decoy group object.
 
 EXAMPLE
@@ -186,9 +186,9 @@ A 4662 is logged whenever membership of the Forest Admins group is listed.
 ### Bugs, Feedback and Feature Requests
 Please raise an issue if you encounter a bug or have a feature request. 
 
-#### Contributing
+### Contributing
 You can contribute by fixing bugs or contributing to the code. If you cannot code, you can test the deployment in your network and share the results about false positives with me to help improve the project.
 
-#### Blog Posts
+### Blog Posts
 https://www.labofapenetrationtester.com/2018/10/deploy-deception.html
 
