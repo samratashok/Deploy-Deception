@@ -5,7 +5,7 @@ By [nikhil_mitt](https://twitter.com/nikhil_mitt)
 
 #### Usage
 
-Import the module in the current PowerShell session (PowerShell v3 onwards).
+Import the module in the current PowerShell session.
 
 PS C:\\> Import-Module C:\Deploy-Deception\Deploy-Deception.psd1
 
