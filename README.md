@@ -34,29 +34,28 @@ Group Policy needs to be configured to enable 4662 logging.
 ### Deploy-UserDeception
 This function sets up auditing when a specified Right is used by a specifed principal against the decoy user object.
 
-Create-DecoyUser -UserFirstName user -UserLastName manager-control -Password Pass@123 | Deploy-UserDeception -UserFlag AllowReversiblePasswordEncryption -Right ReadControl -Verbose 
-
-
-### Deploy-UserDeception
-This function sets up auditing when a specified Right is used by a specifed principal against the decoy user object.
-
 EXAMPLE
 
 PS C:\\> Create-DecoyUser -UserFirstName user -UserLastName manager -Password Pass@123 | Deploy-UserDeception -UserFlag PasswordNeverExpires -Verbose
+
 Creates a decoy user whose password never expires and a 4662 is logged whenever ANY property of the user is read. Very verbose!
 
 EXAMPLE
 
 PS C:\\> Create-DecoyUser -UserFirstName user -UserLastName manager -Password Pass@123 | Deploy-UserDeception -UserFlag PasswordNeverExpires -GUID d07da11f-8a3d-42b6-b0aa-76c962be719a -Verbose
+
 Creates a decoy user whose password never expires and a 4662 is logged whenever x500uniqueIdentifier - d07da11f-8a3d-42b6-b0aa-76c962be719a property of the user is read.
 
 This property is not read by net.exe, WMI classes (like Win32_UserAccount) and ActiveDirectory module.
+
 But LDAP based tools like PowerView and ADExplorer trigger the logging.
 
 EXAMPLE
 
 PS C:\\> Create-DecoyUser -UserFirstName user -UserLastName manager-control -Password Pass@123 | Deploy-UserDeception -UserFlag AllowReversiblePasswordEncryption -Right ReadControl -Verbose 
+
 Creates a decoy user which has Allow Reverisble Password Encrpytion property set. 
+
 A 4662 is logged whenever DACL of the user is read.
 
 This property is not read by enumeration tools unless specifically DACL or all properties for the decoy user are force read.
@@ -67,9 +66,11 @@ This function sets up auditing when a specified Right is used over the slave use
 EXAMPLE
 
 PS C:\\> Create-DecoyUser -UserFirstName master -UserLastName user -Password Pass@123 
+
 PS C:\\> Create-DecoyUser -UserFirstName slave -UserLastName user -Password Pass@123 | Deploy-SlaveDeception -DecoySamAccountName masteruser -Verbose
 
 The first command creates a deocy user 'masteruser'.
+
 The second command creates a decoy user 'slaveuser' and provides masteruser GenericAll rights over slaveuser.
 
 For both the users a 4662 is logged whenever there is any interaction with them.
@@ -77,10 +78,15 @@ For both the users a 4662 is logged whenever there is any interaction with them.
 EXAMPLE
 
 PS C:\\> Create-DecoyUser -UserFirstName master -UserLastName user -Password Pass@123 | Deploy-UserDeception -UserFlag PasswordNeverExpires -GUID d07da11f-8a3d-42b6-b0aa-76c962be719a -Verbose
+
 PS C:\\> Create-DecoyUser -UserFirstName slave -UserLastName user -Password Pass@123 | Deploy-SlaveDeception -DecoySamAccountName masteruser -Verbose
+
 PS C:\\> Deploy-SlaveDeception -SlaveSamAccountName slaveuser -DecoySamAccountName masteruser -Verbose 
+
 The first command creates a decoy user 'masteruser' whose password never expires and a 4662 is logged whenever x500uniqueIdentifier - d07da11f-8a3d-42b6-b0aa-76c962be719a property of the user is read.
+
 The second command creates a decoy user 'slaveuser' whose password never expires and a 4662 is logged whenever x500uniqueIdentifier - d07da11f-8a3d-42b6-b0aa-76c962be719a property of the user is read.
+
 The third command grants masteruser GenericAll rights over slaveuser.
 
 The above three commands make masteruser and slaveuser attractive for an attacker and the logging is triggered only for aggressive enumeration.
@@ -88,10 +94,15 @@ The above three commands make masteruser and slaveuser attractive for an attacke
 EXAMPLE
 
 PS C:\\> Create-DecoyUser -UserFirstName master -UserLastName user -Password Pass@123
+
 PS C:\\> Create-DecoyUser -UserFirstName slave -UserLastName user -Password Pass@123 
+
 PS C:\\> Deploy-SlaveDeception -SlaveSamAccountName slaveuser -DecoySamAccountName masteruser -Verbose 
+
 PS C:\\> Deploy-UserDeception -DecoySamAccountName slaveuser -Principal masteruser -Right WriteDacl -Verbose
+
 The first three commands create a slaveuser, create a master user and provide masteruser GenericAll rights on slaveuser.
+
 The foruth command triggers a 4662 log only when masteruser is used change DACL (WirteDacl) of the slaveuser. 
 
 This is useful when targeting lateral movement and it is assumed that an adversary will get access to masteruser.
@@ -103,6 +114,7 @@ This function deploys a decoy user which has high privileges like membership of 
 EXAMPLE
 
 PS C:\\> Create-DecoyUser -UserFirstName dec -UserLastName da -Password Pass@123 | Deploy-PrivilegedUserDeception -Technique DomainAdminsMemebership -Protection DenyLogon -Verbose
+
 Create a decoy user named decda and make it a member of the Domain Admins group. As a protection against potential abuse,
 Deny logon to the user on any machine. Please be aware that if another DA gets comprimised the DenyLogon setting can be removed.
 
@@ -113,6 +125,7 @@ Any enumeration which reads DACL or all properties for the user will result in a
 EXAMPLE
 
 PS C:\\> Deploy-PrivilegedUserDeception -DecoySamaccountName decda -Technique DomainAdminsMemebership -Protection LogonWorkStation nonexistent -Verbose
+
 Use existing user decda and make it a member of the Domain Admins group. As a protection against potential abuse,
 set LogonWorkstation for the user to a nonexistent machine.
 
@@ -123,8 +136,8 @@ Any enumeration which reads DACL or all properties for the user will result in a
 EXAMPLE
 
 PS C:\\> Deploy-PrivilegedUserDeception -DecoySamaccountName decda -Technique DCSyncRights -Protection LogonWorkStation nonexistent -Verbose
-Use existing user decda and make provide it DCSyncRights. As a protection against potential abuse,
-set LogonWorkstation for the user to a nonexistent machine.
+
+Use existing user decda and make provide it DCSyncRights. As a protection against potential abuse, set LogonWorkstation for the user to a nonexistent machine.
 
 If there is any attempt to use the user credentials (password or hashes) a 4768 is logged.
 
@@ -133,6 +146,7 @@ Any enumeration which reads DACL or all properties for the user will result in a
 EXAMPLE
 
 PS C:\\> Create-DecoyUser -UserFirstName test -UserLastName da -Password Pass@123 | Deploy-PrivilegedUserDeception -Technique DomainAdminsMemebership -Protection LogonWorkStation -LogonWorkStation revert-dc -CreateLogon -Verbose 
+
 Create a decoy user named decda and make it a member of the Domain Admins group. 
 As a protection against potential abuse, set LogonWorkstation for the user to the DC where this function is executed. 
 
@@ -147,12 +161,14 @@ Any enumeration which reads DACL or all properties for the user will result in a
 This function sets up auditing when a specified Right is used by a specifed principal against the decoy computer object.
 
 PS C:\\> Create-DecoyComputer -ComputerName revert-web -Verbose | Deploy-ComputerDeception -PropertyFlag TrustedForDelegation -GUID d07da11f-8a3d-42b6-b0aa-76c962be719a  -Verbose
+
 Creates a decoy computer that has Unconstrained Delegation enabled and a 4662 is logged whenever x500uniqueIdentifier - d07da11f-8a3d-42b6-b0aa-76c962be719a property or all the properties
 of the computer are read.
 
 EXAMPLE
 
 PS C:\\> Deploy-ComputerDeception -DecoyComputerName comp1 -PropertyFlag TrustedForDelegation -GUID d07da11f-8a3d-42b6-b0aa-76c962be719a  -Verbose
+
 Uses an existing computer object and set Unconstrained Delegation on it. A 4662 is logged whenever x500uniqueIdentifier - d07da11f-8a3d-42b6-b0aa-76c962be719a property or all the properties
 of the computer are read.
 
@@ -174,12 +190,14 @@ This function sets up auditing when a specified Right is used by a specifed prin
 EXAMPLE
 
 PS C:\\> Create-DecoyGroup -GroupName 'Forest Admins' -Verbose | Deploy-GroupDeception -AddMembers slaveuser -AddToGroup dnsadmins -Right ReadControl -Verbose 
+
 Creates a decoy Group 'Forest Admins', adds slaveuser as a member and makes the group part of the dnsadmins group. 
 A 4662 is logged whenever DACL or all the properties of the group are read.
 
 EXAMPLE
 
 PS C:\\> Create-DecoyGroup -GroupName "Forest Admins" -Verbose | Deploy-GroupDeception -AddMembers -Members slaveuser -AddToGroup -AddToGroupName dnsadmins -GUID bc0ac240-79a9-11d0-9020-00c04fc2d4cf -Verbose
+
 Creates a decoy Group 'Forest Admins',adds slaveuser as a member and makes the group part of the dnsadmins group.
 A 4662 is logged whenever membership of the Forest Admins group is listed. 
 
