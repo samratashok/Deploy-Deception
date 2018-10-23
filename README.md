@@ -54,7 +54,7 @@ EXAMPLE
 
 PS C:\\> Create-DecoyUser -UserFirstName user -UserLastName manager-control -Password Pass@123 | Deploy-UserDeception -UserFlag AllowReversiblePasswordEncryption -Right ReadControl -Verbose 
 
-Creates a decoy user which has Allow Reverisble Password Encrpytion property set. 
+Creates a decoy user which has Allow Reversible Password Encrpytion property set. 
 
 A 4662 is logged whenever DACL of the user is read.
 
