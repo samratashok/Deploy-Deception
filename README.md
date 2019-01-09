@@ -196,7 +196,7 @@ A 4662 is logged whenever DACL or all the properties of the group are read.
 
 EXAMPLE
 
-PS C:\\> Create-DecoyGroup -GroupName "Forest Admins" -Verbose | Deploy-GroupDeception -AddMembers -Members slaveuser -AddToGroup -AddToGroupName dnsadmins -GUID bc0ac240-79a9-11d0-9020-00c04fc2d4cf -Verbose
+PS C:\\> Create-DecoyGroup -GroupName "Forest Admins" -Verbose | Deploy-GroupDeception -AddMembers slaveuser -AddToGroup -dnsadmins -GUID bc0ac240-79a9-11d0-9020-00c04fc2d4cf -Verbose
 
 Creates a decoy Group 'Forest Admins',adds slaveuser as a member and makes the group part of the dnsadmins group.
 A 4662 is logged whenever membership of the Forest Admins group is listed. 
