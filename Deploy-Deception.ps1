@@ -1180,7 +1180,7 @@ https://github.com/samratashok/Deploy-Deception
         $DecoyGroupName,
      
         [Parameter(Position = 1, Mandatory = $False)]        
-        [String]
+        [String[]]
         $AddMembers,
 
         [Parameter(Position = 2, Mandatory = $False)]
@@ -1201,7 +1201,7 @@ https://github.com/samratashok/Deploy-Deception
         $GUID,
 
         [Parameter(Position = 6, Mandatory = $False)]
-        [String]
+        [String[]]
         [ValidateSet ("Success","Failure")]
         $AuditFlag = "Success",
 
