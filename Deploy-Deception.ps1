@@ -731,7 +731,7 @@ Deploys the specific decoy user and provide it high privileges (with protections
 .DESCRIPTION
 This function deploys a decoy user which has high privileges like membership of the Domain Admins group. 
 
-There are protections like nonexistent LogonWorkStation or DenyLogon to avoid abuse of these privileges. 
+There are protections like DenyLogon to avoid abuse of these privileges. 
 
 Note that Windows Settings -> Security Settings -> Advanced Audit Policy Configuration -> DS Access - Audit Directory Service Access
 Group Policy needs to be configured to enable 4662 logging.
@@ -750,7 +750,7 @@ DistinguishedName of the decoy user.
 The privilges for the decoy user. Currently, DomainAdminsMembership and DCSyncRights.
 
 .PARAMETER Protection
-Protection for avoiding abuse of the privileges. Currently, LogonWorkStation and DenyLogon.
+Protection for avoiding abuse of the privileges. Currently, only DenyLogon is available.
 
 .PARAMETER Principal
 The Principal (user or group) for which auditing is turned on when they use Rights defined by the Right or GUID paramter.
@@ -785,27 +785,18 @@ If there is any attempt to use the user credentials (password or hashes) a 4768 
 Any enumeration which reads DACL or all properties for the user will result in a 4662 logging. 
 
 .EXAMPLE
-PS C:\> Deploy-PrivilegedUserDeception -DecoySamaccountName decda -Technique DomainAdminsMemebership -Protection LogonWorkStation nonexistent -Verbose
-Use existing user decda and make it a member of the Domain Admins group. As a protection against potential abuse,
-set LogonWorkstation for the user to a nonexistent machine.
-
-If there is any attempt to use the user credentials (password or hashes) a 4768 is logged.
-
-Any enumeration which reads DACL or all properties for the user will result in a 4662 logging. 
-
-.EXAMPLE
-PS C:\> Deploy-PrivilegedUserDeception -DecoySamaccountName decda -Technique DCSyncRights -Protection LogonWorkStation nonexistent -Verbose
+PS C:\> Deploy-PrivilegedUserDeception -DecoySamaccountName decda -Technique DCSyncRights -Protection DenyLogon -Verbose
 Use existing user decda and make provide it DCSyncRights. As a protection against potential abuse,
-set LogonWorkstation for the user to a nonexistent machine.
+Deny logon to the user on any machine.
 
 If there is any attempt to use the user credentials (password or hashes) a 4768 is logged.
 
 Any enumeration which reads DACL or all properties for the user will result in a 4662 logging. 
 
 .EXAMPLE
-PS C:\> Create-DecoyUser -UserFirstName test -UserLastName da -Password Pass@123 | Deploy-PrivilegedUserDeception -Technique DomainAdminsMemebership -Protection LogonWorkStation -LogonWorkStation revert-dc -CreateLogon -Verbose 
+PS C:\> Create-DecoyUser -UserFirstName test -UserLastName da -Password Pass@123 | Deploy-PrivilegedUserDeception -Technique DomainAdminsMemebership -Protection DenyLogon -CreateLogon -Verbose 
 Create a decoy user named decda and make it a member of the Domain Admins group. 
-As a protection against potential abuse, set LogonWorkstation for the user to the DC where this function is executed. 
+As a protection against potential abuse, Deny logon to the user on any machine.. 
 
 To avoid detection of the decoy which relies on logoncount use the CreateLogon option which starts and stops a process as the
 decoy user on the DC. A user profile is created on the DC when this parameter is used. 
@@ -835,27 +826,23 @@ https://github.com/samratashok/Deploy-Deception
 
         [Parameter(Position = 3, Mandatory = $False)]
         [String]
-        [ValidateSet ("LogonWorkStation","DenyLogon")]
+        [ValidateSet ("DenyLogon")]
         $Protection,
 
         [Parameter(Position = 4, Mandatory = $False)]
         [String]
-        $LogonWorkStation,
-
-        [Parameter(Position = 5, Mandatory = $False)]
-        [String]
         $Principal = "Everyone",
 
-        [Parameter(Position = 6, Mandatory = $False)]
+        [Parameter(Position = 5, Mandatory = $False)]
         [String]
         [ValidateSet ("GenericAll","GenericRead","GenericWrite","ReadControl","ReadProperty","WriteDacl","WriteOwner","WriteProperty")]
         $Right = "ReadControl",
 
-        [Parameter(Position = 7, Mandatory = $False)]
+        [Parameter(Position = 6, Mandatory = $False)]
         [String]
         $GUID,
 
-        [Parameter(Position = 8, Mandatory = $False)]
+        [Parameter(Position = 7, Mandatory = $False)]
         [String]
         [ValidateSet ("Success","Failure")]
         $AuditFlag = "Success",
@@ -895,7 +882,7 @@ https://github.com/samratashok/Deploy-Deception
         {
             "DomainAdminsMemebership"
             {
-                # The user will actually be a part of the DA group but can logon only to a non-existent workstation.
+                # The user will actually be a part of the DA group but cannot logon.
                 Write-Verbose "Adding $DecoySamAccountName to the Domain Admins Group."
                 Add-ADGroupMember -Identity "Domain Admins" -Members $DecoySamAccountName
                 $isDA = $True
@@ -925,29 +912,6 @@ https://github.com/samratashok/Deploy-Deception
     {
         switch ($Protection)
         {
-            "LogonWorkStation"
-            {
-                # Set the user logon to a turned off workstation
-                Write-Verbose "Adding protection - Decoy user $DecoySamAccountName can logon only to $LogonWorkStation."
-                Set-ADUser -Identity $DecoySamAccountName -LogonWorkstations $LogonWorkStation
-                if ($isDA -and $CreateLogon -and (Get-ADDomainController -Filter *).name -contains $LogonWorkStation )
-                {
-                    Write-Verbose "Creating $logonCount logon(s) on the DC for decoy domain admin $DecoySamAccountName by starting and stopping calc.exe. Please provide credentials for $DecoySamAccountName!"
-                    Write-Warning "This will create a user profile for $DecoySamAccountName on $LogonWorkStation!!"
-                    $creds = Get-Credential -UserName $DecoySamAccountName -Message "Please enter password for $DecoySamAccountName to create logon"
-                    for ($count = 1;$count -le $logonCount;$count++)
-                    {
-                        Start-Process -FilePath C:\Windows\system32\calc.exe -WorkingDirectory C:\Windows\Temp -Credential $creds -PassThru | Stop-Process -Force
-                        Sleep -Milliseconds 10
-                    }
-                }
-                else
-                {
-                    Write-Output "Currently only Deocy DA logon creations when LogonWorkstation is set to one of the DCs is supported."
-                }
-
-
-            }
             "DenyLogon"
             {
                 # Deny logon to user from anywhere by setting logon hours
